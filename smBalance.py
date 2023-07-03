@@ -11,14 +11,22 @@ comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-if rank == 0:
-    pedacos = size
-    valor = int(input("Digite um valor: "))
-    parte = valor // pedacos
-    resto = valor % pedacos
+valor = 10
 
-    vetinic = [i * parte + min(i, resto) + 1 for i in range(pedacos)]
-    vetfim = [(i + 1) * parte + min(i + 1, resto) for i in range(pedacos)]
+pedacos = size - 1  # O número de pedaços é igual   ao número de processos - 1
+parte = valor // pedacos
+resto = valor % pedacos
+
+vetinic = [i * parte + min(i, resto) + 1 for i in range(pedacos)]
+vetfim = [(i + 1) * parte + min(i + 1, resto) for i in range(pedacos)]
+
+if rank == 0:
+    pedacos_completos = pedacos
+    if resto > 0:
+        pedacos_completos -= 1
+
+    vetinic.append(pedacos_completos * parte + min(pedacos_completos, resto) + 1)
+    vetfim.append(valor)
 
     for i in range(pedacos):
         vetinic[i] = i * parte + 1
@@ -67,5 +75,5 @@ else:
     print("inicio", inic)
     print("fim", fim)
 
-    somaesc = soma(inic, fim)
+    somaesc = soma(inic, fim+1)
     comm.send(somaesc, dest=0, tag=3)
